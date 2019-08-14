@@ -102,7 +102,7 @@ func (o *OpenGL) InitializeOpenGL(hwnd w32.HWND, screenWidth, screenHeight int, 
 	}
 
 	// support for opengl rendering
-	attributeListInt := [19]int{
+	attributeListInt := [...]int32{
 		wgl.SUPPORT_OPENGL_ARB, gl.TRUE, // support for opengl rendering
 		wgl.DRAW_TO_WINDOW_ARB, gl.TRUE, // support for rendering to window
 		wgl.ACCELERATION_ARB, wgl.FULL_ACCELERATION_ARB, // support for hardware acceleration
@@ -115,8 +115,8 @@ func (o *OpenGL) InitializeOpenGL(hwnd w32.HWND, screenWidth, screenHeight int, 
 		0, // null terminate the attribute list
 	}
 
-	var pixelFormat int
-	var formatCount uint
+	var pixelFormat int32
+	var formatCount uint32
 
 	// query for a pixel format that fits the attributes we want
 	result := wgl.ChoosePixelFormatARB(unsafe.Pointer(o.deviceContext), unsafe.Pointer(&attributeListInt), nil, unsafe.Pointer(uintptr(1)), unsafe.Pointer(&pixelFormat), unsafe.Pointer(&formatCount))
@@ -134,7 +134,7 @@ func (o *OpenGL) InitializeOpenGL(hwnd w32.HWND, screenWidth, screenHeight int, 
 	}
 
 	// set the 4.0 version of opengl in the attribute list
-	attributeList := [5]int{
+	attributeList := [5]int32{
 		wgl.CONTEXT_MAJOR_VERSION_ARB, 4,
 		wgl.CONTEXT_MINOR_VERSION_ARB, 0,
 		0,
