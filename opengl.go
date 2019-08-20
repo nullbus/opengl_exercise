@@ -3,6 +3,7 @@ package opengl_exercise
 import (
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"math"
 	"unsafe"
@@ -38,6 +39,13 @@ func (m1 *Matrix) Multiply(m2 *Matrix) Matrix {
 	}
 }
 
+func (m *Matrix) Print(f io.Writer) {
+	fmt.Fprintf(f, "%.2f %.2f %.2f %.2f\n", m[0], m[1], m[2], m[3])
+	fmt.Fprintf(f, "%.2f %.2f %.2f %.2f\n", m[4], m[5], m[6], m[7])
+	fmt.Fprintf(f, "%.2f %.2f %.2f %.2f\n", m[8], m[9], m[10], m[11])
+	fmt.Fprintf(f, "%.2f %.2f %.2f %.2f\n\n", m[12], m[13], m[14], m[15])
+}
+
 type OpenGL struct {
 	renderingContext w32.HGLRC
 	deviceContext    w32.HDC
@@ -54,7 +62,6 @@ func NewOpenGL() *OpenGL {
 // InitializeExtensions is what allows us to get to get pointers to all the OpenGL functions that are available from the video card driver.
 // In this function we will setup a temporary device context, pixel format, and rendering context so that we can call the LoadExtensionList function which then gets us all the function pointers we need.
 func (o *OpenGL) InitializeExtensions(hwnd w32.HWND) error {
-
 	// ge the device context for this window
 	dc := w32.GetDC(hwnd)
 	if dc == 0 {
@@ -106,42 +113,45 @@ func (o *OpenGL) InitializeOpenGL(hwnd w32.HWND, screenWidth, screenHeight int, 
 		wgl.SUPPORT_OPENGL_ARB, gl.TRUE, // support for opengl rendering
 		wgl.DRAW_TO_WINDOW_ARB, gl.TRUE, // support for rendering to window
 		wgl.ACCELERATION_ARB, wgl.FULL_ACCELERATION_ARB, // support for hardware acceleration
-		wgl.COLOR_BITS_ARB, 32, // support 24bit color
+		wgl.COLOR_BITS_ARB, 32, // support 32bit color
+		wgl.ALPHA_BITS_ARB, 8, // support 8bit alpha
 		wgl.DEPTH_BITS_ARB, 24, // support for 24bit depth buffer
+		wgl.STENCIL_BITS_ARB, 8, // support for a 8bit stencil buffer
 		wgl.DOUBLE_BUFFER_ARB, gl.TRUE, // support for double buffer
 		wgl.SWAP_METHOD_ARB, wgl.SWAP_EXCHANGE_ARB, // support for swapping front and back buffer
 		wgl.PIXEL_TYPE_ARB, wgl.TYPE_RGBA_ARB, // support for the RGBA pixel type
-		wgl.STENCIL_BITS_ARB, 8, // support for a 8bit stencil buffer
 		0, // null terminate the attribute list
 	}
 
-	var pixelFormat int32
+	var pixelFormat [16]int32
 	var formatCount uint32
 
 	// query for a pixel format that fits the attributes we want
-	result := wgl.ChoosePixelFormatARB(unsafe.Pointer(o.deviceContext), unsafe.Pointer(&attributeListInt), nil, unsafe.Pointer(uintptr(1)), unsafe.Pointer(&pixelFormat), unsafe.Pointer(&formatCount))
+	result := wgl.ChoosePixelFormatARB(unsafe.Pointer(o.deviceContext), unsafe.Pointer(&attributeListInt[0]), nil, unsafe.Pointer(uintptr(len(pixelFormat))), unsafe.Pointer(&pixelFormat[0]), unsafe.Pointer(&formatCount))
 	if uintptr(result) != gl.TRUE || formatCount == 0 {
 		log.Println(result, pixelFormat, formatCount)
 		return errors.New("wglChoosePixelFormatARB failed")
 	}
 
+	log.Println("formats:", formatCount)
+
 	// if the video card/display can handle our desired pixel format then we set it as the current one
 	var pixelFormatDescriptor w32.PIXELFORMATDESCRIPTOR
-	result = wgl.SetPixelFormat(unsafe.Pointer(o.deviceContext), unsafe.Pointer(uintptr(pixelFormat)), unsafe.Pointer(&pixelFormatDescriptor))
+	result = wgl.SetPixelFormat(unsafe.Pointer(o.deviceContext), unsafe.Pointer(uintptr(pixelFormat[0])), unsafe.Pointer(&pixelFormatDescriptor))
 	if uintptr(result) != gl.TRUE {
 		log.Println(result, pixelFormat, formatCount)
 		return errors.New("wglSetPixelFormat failed")
 	}
 
 	// set the 4.0 version of opengl in the attribute list
-	attributeList := [5]int32{
+	attributeList := [...]int32{
 		wgl.CONTEXT_MAJOR_VERSION_ARB, 4,
 		wgl.CONTEXT_MINOR_VERSION_ARB, 0,
 		0,
 	}
 
 	// create a opengl 4.0 rendering context
-	o.renderingContext = w32.HGLRC(wgl.CreateContextAttribsARB(unsafe.Pointer(o.deviceContext), unsafe.Pointer(uintptr(0)), unsafe.Pointer(&attributeList)))
+	o.renderingContext = w32.HGLRC(wgl.CreateContextAttribsARB(unsafe.Pointer(o.deviceContext), nil, unsafe.Pointer(&attributeList[0])))
 	if o.renderingContext == 0 {
 		return errors.New("Failed to create rendering context")
 	}
@@ -181,7 +191,7 @@ func (o *OpenGL) InitializeOpenGL(hwnd w32.HWND, screenWidth, screenHeight int, 
 	log.Println("vendor:", vendorString, "renderer:", rendererString)
 
 	// store the video card anme in a class member variable so it can be retrieved later
-	o.videoCardDesc = fmt.Sprintf("%s-%s", vendorString, rendererString)
+	o.videoCardDesc = fmt.Sprintf("%s - %s", vendorString, rendererString)
 
 	// turn on or off the vertical sync depending on the input bool variable
 	if vsync {
@@ -191,24 +201,35 @@ func (o *OpenGL) InitializeOpenGL(hwnd w32.HWND, screenWidth, screenHeight int, 
 	}
 
 	// check of vsync was set correctly
-	if uintptr(result) == 0 {
+	if uintptr(result) != gl.TRUE {
 		return errors.New("failed to set vsync")
 	}
 
 	return nil
 }
 
+func (o *OpenGL) WorldMatrix() Matrix {
+	return o.worldMatrix
+}
+
+func (o *OpenGL) ProjectionMatrix() Matrix {
+	return o.projectionMatrix
+}
+
 func (o *OpenGL) BeginScene(r, g, b, a float32) {
 	// set the color to clear the scene to
 	gl.ClearColor(r, g, b, a)
+	check()
 
 	// clear the screen and depth buffer
 	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+	check()
 }
 
 func (o *OpenGL) EndScene() {
 	// present the back buffer to the screen since rendering is complete
 	w32.SwapBuffers(o.deviceContext)
+	check()
 }
 
 func (o *OpenGL) Shutdown(hwnd w32.HWND) {
@@ -249,9 +270,9 @@ func (o *OpenGL) identityMatrix() Matrix {
 
 func (o *OpenGL) perspectiveFovLHMatrix(fov, screenAspect, screenNear, screenDepth float32) Matrix {
 	return Matrix{
-		1.0 / (screenAspect * float32(math.Tan(float64(fov*0.5)))), 0, 0, 0,
-		0, 1 / float32(math.Tan(float64(fov*0.5))), 0, 0,
-		0, 0, screenDepth / (screenDepth - screenNear), 0,
+		1.0 / (screenAspect * float32(math.Tan(float64(fov)*0.5))), 0, 0, 0,
+		0, 1 / float32(math.Tan(float64(fov)*0.5)), 0, 0,
+		0, 0, screenDepth / (screenDepth - screenNear), 1,
 		0, 0, (-screenNear * screenDepth) / (screenDepth - screenNear), 0,
 	}
 }

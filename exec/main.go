@@ -1,25 +1,23 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
-	exercise "github.com/nullbus/opengl_exercise"
-	"golang.org/x/sys/windows"
+	. "github.com/nullbus/opengl_exercise"
+	"github.com/nullbus/opengl_exercise/gl"
 )
 
-func main() {
-	namea := "ChoosePixelFormat"
-	opengl32 := windows.NewLazySystemDLL("gdi32")
-	p := opengl32.NewProc(namea)
-	if err := p.Find(); err != nil {
-		// The proc is not found.
-		fmt.Println(err)
+func c() {
+	if err := gl.GetError(); err != 0 {
+		log.Fatalln("fatal", err)
 	}
+}
 
-	//
-	system := exercise.System{
-		Fullscreen: false,
+func main() {
+	system := System{
+		Fullscreen:  false,
+		ScreenNear:  0.1,
+		ScreenDepth: 1000,
 	}
 	defer system.Shutdown()
 

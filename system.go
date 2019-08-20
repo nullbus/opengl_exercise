@@ -81,6 +81,7 @@ func (s *System) Run() error {
 		}
 
 		lastFrame = now
+		time.Sleep(30 * time.Millisecond)
 	}
 
 	return nil
@@ -172,7 +173,7 @@ func (s *System) initializeWindows() (width, height int, err error) {
 	}
 
 	// create the window with the screen settings and get the handle to it
-	s.hwnd = w32.CreateWindowEx(w32.WS_EX_APPWINDOW, applicationName, applicationName, w32.WS_POPUP,
+	s.hwnd = w32.CreateWindowEx(w32.WS_EX_APPWINDOW, applicationName, windowName, w32.WS_POPUP,
 		posX, posY, width, height, 0, 0, s.hinstance, nil)
 
 	if s.hwnd == 0 {
