@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"runtime"
 	"syscall"
 	"time"
 	"unsafe"
@@ -58,6 +59,8 @@ func (s *System) Run() error {
 	var message w32.MSG
 	done := false
 	lastFrame := time.Now()
+	runtime.LockOSThread()
+
 	for !done {
 		// Handle the windows messages
 		if w32.PeekMessage(&message, 0, 0, 0, w32.PM_REMOVE) {

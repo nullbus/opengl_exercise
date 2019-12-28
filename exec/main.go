@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	. "github.com/nullbus/opengl_exercise"
+	exercise "github.com/nullbus/opengl_exercise"
 	"github.com/nullbus/opengl_exercise/gl"
 )
 
@@ -14,7 +14,7 @@ func c() {
 }
 
 func main() {
-	system := System{
+	system := exercise.System{
 		Fullscreen:  false,
 		ScreenNear:  0.1,
 		ScreenDepth: 1000,
