@@ -69,12 +69,13 @@ func (m *Model) initialize() error {
 	gl.EnableVertexAttribArray(1) // vertex color
 
 	// specify the location and format of the position portion of the vertex buffer
+	stride := int32(unsafe.Sizeof(Vertex{}))
 	gl.BindBuffer(gl.ARRAY_BUFFER, m.vertexBuffer)
-	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, int32(unsafe.Sizeof(Vertex{})), nil)
+	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, stride, nil)
 
 	// specify the location and format of the color portion of the vertex buffer
 	gl.BindBuffer(gl.ARRAY_BUFFER, m.vertexBuffer)
-	gl.VertexAttribPointer(1, 3, gl.FLOAT, false, int32(unsafe.Sizeof(Vertex{})), unsafe.Pointer(uintptr(3*4 /*sizeof(float32)*/)))
+	gl.VertexAttribPointer(1, 3, gl.FLOAT, false, stride, unsafe.Pointer(uintptr(3*4 /*sizeof(float32)*/)))
 
 	// generate an id for the index buffer
 	gl.GenBuffers(1, &m.indexBuffer)

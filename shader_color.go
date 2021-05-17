@@ -49,21 +49,21 @@ func (s *ColorShader) SetShader() {
 func (s *ColorShader) SetShaderParams(worldMatrix, viewMatrix, projectionMatrix Matrix) error {
 	// set the world matrix in the vertex shader
 	if location, err := s.findUniform("worldMatrix"); err == nil {
-		gl.UniformMatrix4fv(location, 1, false, &worldMatrix[0])
+		gl.UniformMatrix4fv(location, 1, false, worldMatrix.Ptr())
 	} else {
 		return err
 	}
 
 	// set the view matrix in the vetex shader
 	if location, err := s.findUniform("viewMatrix"); err == nil {
-		gl.UniformMatrix4fv(location, 1, false, &viewMatrix[0])
+		gl.UniformMatrix4fv(location, 1, false, viewMatrix.Ptr())
 	} else {
 		return err
 	}
 
 	// set the projection matrix in the vetex shader
 	if location, err := s.findUniform("projectionMatrix"); err == nil {
-		gl.UniformMatrix4fv(location, 1, false, &projectionMatrix[0])
+		gl.UniformMatrix4fv(location, 1, false, projectionMatrix.Ptr())
 	} else {
 		return err
 	}

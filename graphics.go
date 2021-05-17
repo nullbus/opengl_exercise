@@ -2,6 +2,7 @@ package opengl_exercise
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/nullbus/opengl_exercise/gl"
@@ -101,13 +102,13 @@ func (g *Graphics) render() error {
 		return err
 	}
 
-	// fmt.Println("-----------------------------------------------")
-	// worldMatrix.Print(os.Stdout)
-	// viewMatrix.Print(os.Stdout)
-	// projectionMatrix.Print(os.Stdout)
-	// fmt.Printf("%+v\n", Vector{-1, -1, 0}.MultiplyMatrix(&worldMatrix).MultiplyMatrix(&viewMatrix).MultiplyMatrix(&projectionMatrix))
-	// fmt.Printf("%+v\n", Vector{0, 1, 0}.MultiplyMatrix(&worldMatrix).MultiplyMatrix(&viewMatrix).MultiplyMatrix(&projectionMatrix))
-	// fmt.Printf("%+v\n\n", Vector{1, -1, 0}.MultiplyMatrix(&worldMatrix).MultiplyMatrix(&viewMatrix).MultiplyMatrix(&projectionMatrix))
+	fmt.Println("-----------------------------------------------")
+	worldMatrix.Print(os.Stdout)
+	viewMatrix.Print(os.Stdout)
+	projectionMatrix.Print(os.Stdout)
+	fmt.Printf("%+v\n", Vector{-1, -1, 0}.MultiplyMatrix(&worldMatrix).MultiplyMatrix(&viewMatrix).MultiplyMatrix(&projectionMatrix))
+	fmt.Printf("%+v\n", Vector{0, 1, 0}.MultiplyMatrix(&worldMatrix).MultiplyMatrix(&viewMatrix).MultiplyMatrix(&projectionMatrix))
+	fmt.Printf("%+v\n\n", Vector{1, -1, 0}.MultiplyMatrix(&worldMatrix).MultiplyMatrix(&viewMatrix).MultiplyMatrix(&projectionMatrix))
 
 	// render the model using shader
 	g.model.Render()

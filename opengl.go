@@ -46,6 +46,10 @@ func (m *Matrix) Print(f io.Writer) {
 	fmt.Fprintf(f, "%.2f %.2f %.2f %.2f\n\n", m[12], m[13], m[14], m[15])
 }
 
+func (m *Matrix) Ptr() *float32 {
+	return &(*m)[0]
+}
+
 type OpenGL struct {
 	renderingContext w32.HGLRC
 	deviceContext    w32.HDC
@@ -113,7 +117,7 @@ func (o *OpenGL) InitializeOpenGL(hwnd w32.HWND, screenWidth, screenHeight int, 
 		wgl.SUPPORT_OPENGL_ARB, gl.TRUE, // support for opengl rendering
 		wgl.DRAW_TO_WINDOW_ARB, gl.TRUE, // support for rendering to window
 		wgl.ACCELERATION_ARB, wgl.FULL_ACCELERATION_ARB, // support for hardware acceleration
-		wgl.COLOR_BITS_ARB, 32, // support 32bit color
+		wgl.COLOR_BITS_ARB, 24, // support 24bit color
 		wgl.ALPHA_BITS_ARB, 8, // support 8bit alpha
 		wgl.DEPTH_BITS_ARB, 24, // support for 24bit depth buffer
 		wgl.STENCIL_BITS_ARB, 8, // support for a 8bit stencil buffer

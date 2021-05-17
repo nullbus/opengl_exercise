@@ -149,6 +149,6 @@ func (c *Camera) buildViewMatrix(position, lookAt, up Vector) Matrix {
 		xAxis.X, yAxis.X, zAxis.X, 0,
 		xAxis.Y, yAxis.Y, zAxis.Y, 0,
 		xAxis.Z, xAxis.Z, zAxis.Z, 0,
-		-xAxis.Dot(position), yAxis.Dot(position), zAxis.Dot(position), 1,
+		-xAxis.Dot(position), -yAxis.Dot(position), -zAxis.Dot(position), 1,
 	}
 }
